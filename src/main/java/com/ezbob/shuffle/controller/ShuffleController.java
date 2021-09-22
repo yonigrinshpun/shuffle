@@ -3,7 +3,7 @@ package com.ezbob.shuffle.controller;
 import com.ezbob.shuffle.service.ServiceLog;
 import com.ezbob.shuffle.service.ShuffleService;
 import lombok.extern.java.Log;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,16 +21,23 @@ private final ServiceLog serviceLog;
         this.serviceLog = serviceLog;
     }
 
-@GetMapping("/service-shuffle")
+
+@PostMapping("/service-shuffle")
     public String shuffle(@RequestParam(value = "inputValue") String inValue){
     serviceLog.sendLog("Input number: " + inValue);
-    if (shuffleService.validateValue(inValue) != "OK") {
-        return shuffleService.validateValue(inValue);
+    if (!shuffleService.validateValue(inValue).equals("OK")) {
+        String errorMessage=shuffleService.validateValue(inValue);
+
+        serviceLog.sendErrorLog(errorMessage);
+        return errorMessage;
     }
     int inputValue = Integer.parseInt(inValue);
 
     int[] numberArray = shuffleService.createArray(inputValue);
+    String shuffleResult = Arrays.toString(shuffleService.shuffle(numberArray));
 
-    return String.format("The output %s ", Arrays.toString(shuffleService.shuffle(numberArray)));
+    serviceLog.sendLog("Output array: " + shuffleResult);
+    return String.format("The output %s ", shuffleResult);
     }
+
 }
